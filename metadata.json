@@ -1,0 +1,5 @@
+{
+  "name": "Interactive Soundscape Creator",
+  "description": "An interactive audio tool to create unique soundscapes by blending and panning up to four different audio sources. Control the mix with an XY pad using your mouse, touch, or keyboard, and upload your own sounds to craft the perfect atmosphere.",
+  "requestFramePermissions": []
+}
