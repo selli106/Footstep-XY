@@ -1,129 +1,142 @@
-// Fix: The original content of App.tsx was invalid. It has been replaced with a functional React component that serves as the application's root.
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import XYPad from './components/XYPad';
 import Controls from './components/Controls';
 import Footer from './components/Footer';
 import { useAudioEngine } from './hooks/useAudioEngine';
-import { AxisMode, type SoundSources, type SoundCorner } from './types';
+import type { SoundSources, AxisMode, SoundCorner, ReverbPreset } from './types';
+import { AxisMode as AxisModeEnum } from './types';
 
-const initialSounds: SoundSources = {
-  topLeft: { url: null, volume: 0.75, name: null },
-  topRight: { url: null, volume: 0.75, name: null },
-  bottomLeft: { url: null, volume: 0.75, name: null },
-  bottomRight: { url: null, volume: 0.75, name: null },
+const initialSoundSources: SoundSources = {
+  topLeft: { url: null, file: null, volume: 1.0, name: null },
+  topRight: { url: null, file: null, volume: 1.0, name: null },
+  bottomLeft: { url: null, file: null, volume: 1.0, name: null },
+  bottomRight: { url: null, file: null, volume: 1.0, name: null },
 };
 
 function App() {
   const [xy, setXY] = useState({ x: 0.5, y: 0.5 });
-  const [axisMode, setAxisMode] = useState<AxisMode>(AxisMode.BLEND);
-  const [soundSources, setSoundSources] = useState<SoundSources>(initialSounds);
-  const { initAudioContext, isInitialized, triggerSound } = useAudioEngine(soundSources);
-  const [panOffset, setPanOffset] = useState(0);
+  const [axisMode, setAxisMode] = useState<AxisMode>(AxisModeEnum.BLEND);
+  const [soundSources, setSoundSources] = useState<SoundSources>(initialSoundSources);
+  const [reverbPreset, setReverbPreset] = useState<ReverbPreset>('none');
+  const [reverbWet, setReverbWet] = useState(0.3);
+  const [keysPressed, setKeysPressed] = useState({ alt: false, shift: false });
 
-  const setSoundSource = useCallback((corner: SoundCorner, file: File) => {
-    const url = URL.createObjectURL(file);
-    setSoundSources(prev => {
-      // Revoke old URL if it exists to prevent memory leaks
-      if (prev[corner].url) {
-        URL.revokeObjectURL(prev[corner].url!);
-      }
-      return {
-        ...prev,
-        [corner]: { ...prev[corner], url, name: file.name },
-      };
-    });
-  }, []);
+  const { initAudioContext, isInitialized, triggerSound } = useAudioEngine(soundSources, reverbPreset, reverbWet);
 
-  const setSoundSourceVolume = useCallback((corner: SoundCorner, volume: number) => {
+  const handleSetSoundSource = useCallback((corner: SoundCorner, file: File) => {
     setSoundSources(prev => ({
       ...prev,
-      [corner]: { ...prev[corner], volume },
+      [corner]: { ...prev[corner], file, name: file.name }
     }));
   }, []);
 
-  const handlePadInteractionStart = useCallback((position: { x: number; y: number }) => {
-    if (!isInitialized) {
-      initAudioContext();
-    }
-    // We trigger the sound immediately on interaction start (click/touch)
-    triggerSound(position, axisMode, panOffset);
-  }, [isInitialized, initAudioContext, triggerSound, axisMode, panOffset]);
+  const handleSetSoundSourceVolume = useCallback((corner: SoundCorner, volume: number) => {
+    setSoundSources(prev => ({
+      ...prev,
+      [corner]: { ...prev[corner], volume }
+    }));
+  }, []);
 
+  const handlePadInteractionStart = useCallback(async (position: { x: number; y: number }) => {
+    if (!isInitialized) {
+      await initAudioContext();
+    }
+    triggerSound(position, axisMode);
+  }, [isInitialized, initAudioContext, triggerSound, axisMode]);
+
+  // Effect to track Alt/Shift key state for panning
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !e.repeat) {
-        e.preventDefault();
-        handlePadInteractionStart(xy);
-      }
       if (e.key === 'Alt') {
         e.preventDefault();
-        if (panOffset !== -0.5) setPanOffset(-0.5);
+        setKeysPressed(p => ({ ...p, alt: true }));
       }
       if (e.key === 'Shift') {
-        e.preventDefault();
-        if (panOffset !== 0.5) setPanOffset(0.5);
+        setKeysPressed(p => ({ ...p, shift: true }));
       }
     };
-
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Alt' || e.key === 'Shift') {
-        setPanOffset(0);
+      if (e.key === 'Alt') {
+        e.preventDefault();
+        setKeysPressed(p => ({ ...p, alt: false }));
       }
+      if (e.key === 'Shift') {
+        setKeysPressed(p => ({ ...p, shift: false }));
+      }
+    };
+    
+    // Reset keys if the user tabs away
+    const handleBlur = () => {
+      setKeysPressed({ alt: false, shift: false });
     };
 
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-
+    window.addEventListener('blur', handleBlur);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
     };
-  }, [xy, handlePadInteractionStart, panOffset]);
+  }, []);
 
-  // Cleanup object URLs on unmount
+  // Derive panOffset from the state of pressed keys
+  const panOffset = useMemo(() => {
+    if (keysPressed.alt) return -0.75;
+    if (keysPressed.shift) return 0.75;
+    return 0;
+  }, [keysPressed]);
+
+  // Effect for handling the spacebar press
   useEffect(() => {
-    return () => {
-      Object.values(soundSources).forEach(source => {
-        if (source.url) {
-          URL.revokeObjectURL(source.url);
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        
+        if (!isInitialized) {
+          await initAudioContext();
         }
-      });
+        
+        // Use the reliable panOffset from our derived state
+        triggerSound(xy, axisMode, panOffset);
+      }
     };
-  }, [soundSources]);
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [xy, axisMode, panOffset, triggerSound, isInitialized, initAudioContext]);
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col font-sans">
       <Header />
-      <main className="flex-grow flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-8 lg:gap-12">
-        
-          {/* Left Column: XY Pad + Readout */}
-          <div className="w-full lg:w-1/2 flex flex-col">
-            {/* This container grows to match the Controls panel's height, and centers the pad within it. */}
-            <div className="flex-grow flex items-center justify-center min-h-0">
-              <XYPad 
-                xy={xy} 
-                setXY={setXY} 
-                axisMode={axisMode} 
-                onPadInteractionStart={handlePadInteractionStart} 
-              />
-            </div>
-            {/* Readout is outside the growing container, at the bottom of the column */}
-            <div className="mt-4 text-center text-gray-400">
-              <p>X: {xy.x.toFixed(2)}, Y: {xy.y.toFixed(2)}</p>
-              <p className="text-sm mt-2">Click/drag, use arrow keys, or press Space to play.</p>
-            </div>
+      <main className="flex-grow container mx-auto p-4 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <XYPad 
+              xy={xy} 
+              setXY={setXY} 
+              axisMode={axisMode} 
+              onPadInteractionStart={handlePadInteractionStart} 
+            />
           </div>
-
-          {/* Right Column: Controls */}
-          <div className="w-full lg:w-1/2 flex justify-center">
-             <Controls
+          <div className="lg:col-span-1">
+            <Controls 
               axisMode={axisMode}
               setAxisMode={setAxisMode}
               soundSources={soundSources}
-              setSoundSource={setSoundSource}
-              setSoundSourceVolume={setSoundSourceVolume}
+              setSoundSource={handleSetSoundSource}
+              setSoundSourceVolume={handleSetSoundSourceVolume}
+              reverbPreset={reverbPreset}
+              setReverbPreset={setReverbPreset}
+              reverbWet={reverbWet}
+              setReverbWet={setReverbWet}
             />
           </div>
         </div>

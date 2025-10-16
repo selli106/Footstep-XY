@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { AxisMode } from '../types';
-import type { SoundSources, SoundCorner, SoundSource } from '../types';
+import type { SoundSources, SoundCorner, SoundSource, ReverbPreset } from '../types';
 
 interface ControlsProps {
   axisMode: AxisMode;
@@ -8,6 +8,10 @@ interface ControlsProps {
   soundSources: SoundSources;
   setSoundSource: (corner: SoundCorner, file: File) => void;
   setSoundSourceVolume: (corner: SoundCorner, volume: number) => void;
+  reverbPreset: ReverbPreset;
+  setReverbPreset: (preset: ReverbPreset) => void;
+  reverbWet: number;
+  setReverbWet: (wet: number) => void;
 }
 
 const AudioFileInput: React.FC<{
@@ -69,7 +73,25 @@ const AudioFileInput: React.FC<{
   );
 };
 
-const Controls: React.FC<ControlsProps> = ({ axisMode, setAxisMode, soundSources, setSoundSource, setSoundSourceVolume }) => {
+const Controls: React.FC<ControlsProps> = ({ 
+  axisMode, 
+  setAxisMode, 
+  soundSources, 
+  setSoundSource, 
+  setSoundSourceVolume,
+  reverbPreset,
+  setReverbPreset,
+  reverbWet,
+  setReverbWet,
+}) => {
+  const reverbPresets: { id: ReverbPreset, name: string }[] = [
+    { id: 'none', name: 'None' },
+    { id: 'hall', name: 'Hall' },
+    { id: 'bathroom', name: 'Bathroom' },
+    { id: 'tunnel', name: 'Tunnel' },
+    { id: 'hallway', name: 'Hallway' },
+  ];
+  
   return (
     <div className="w-full bg-gray-800/50 p-4 rounded-lg shadow-lg">
       <h3 className="text-lg font-bold mb-4 text-white">Controls</h3>
@@ -98,7 +120,6 @@ const Controls: React.FC<ControlsProps> = ({ axisMode, setAxisMode, soundSources
           <div className="grid grid-cols-2 gap-4">
             <AudioFileInput label="Top-Left" corner="topLeft" soundSource={soundSources.topLeft} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
             <AudioFileInput label="Top-Right" corner="topRight" soundSource={soundSources.topRight} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
-            {/* Fix: Corrected typo `soundSourceVolume` to `setSoundSourceVolume`. */}
             <AudioFileInput label="Bottom-Left" corner="bottomLeft" soundSource={soundSources.bottomLeft} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
             <AudioFileInput label="Bottom-Right" corner="bottomRight" soundSource={soundSources.bottomRight} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
           </div>
@@ -111,6 +132,39 @@ const Controls: React.FC<ControlsProps> = ({ axisMode, setAxisMode, soundSources
             </div>
            </div>
         )}
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-gray-300 mb-2">Reverb Effect</label>
+        <div className="flex flex-col space-y-3">
+          <select
+            value={reverbPreset}
+            onChange={(e) => setReverbPreset(e.target.value as ReverbPreset)}
+            className="w-full bg-gray-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+          >
+            {reverbPresets.map(preset => (
+              <option key={preset.id} value={preset.id}>{preset.name}</option>
+            ))}
+          </select>
+          {reverbPreset !== 'none' && (
+            <div className="flex items-center space-x-2 pt-1">
+              <span className="text-xs text-gray-400 w-12">Dry / Wet</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={reverbWet}
+                onChange={(e) => setReverbWet(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                aria-label="Reverb dry/wet mix"
+              />
+              <span className="text-xs text-gray-400 w-10 text-center">
+                {Math.round(reverbWet * 100)}%
+              </span>
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="mt-4 p-3 bg-gray-900/50 rounded-md">

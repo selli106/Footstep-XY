@@ -5,6 +5,7 @@ export enum AxisMode {
 
 export interface SoundSource {
   url: string | null;
+  file: File | null;
   volume: number;
   name: string | null;
 }
@@ -17,3 +18,5 @@ export interface SoundSources {
 }
 
 export type SoundCorner = keyof SoundSources;
+
+export type ReverbPreset = 'none' | 'hall' | 'bathroom' | 'tunnel' | 'hallway';
