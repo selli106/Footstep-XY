@@ -9,7 +9,7 @@ const Header: React.FC = () => {
           <path d="M10 3.5a1.5 1.5 0 011.5 1.5v1.5H15a1.5 1.5 0 011.5 1.5v5a1.5 1.5 0 01-1.5 1.5H11.5v1.5a1.5 1.5 0 01-3 0v-1.5H5a1.5 1.5 0 01-1.5-1.5v-5A1.5 1.5 0 015 6.5h3.5V5A1.5 1.5 0 0110 3.5zM8.5 8H5v5h3.5V8zm6.5 0H11.5v5H15V8z" />
         </svg>
         <h1 className="text-xl md:text-2xl font-bold tracking-wider text-white">
-          SOUNDSCAPE CREATOR
+          Footsteps XY
         </h1>
       </div>
     </header>

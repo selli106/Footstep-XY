@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useCallback, useState } from 'react';
 import type { SoundSources, AxisMode, SoundCorner } from '../types';
 
@@ -13,7 +14,7 @@ export function useAudioEngine(sounds: SoundSources) {
       audioContextRef.current = context;
 
       const masterGain = context.createGain();
-      masterGain.gain.value = 0.8;
+      masterGain.gain.value = 1.0;
       masterGain.connect(context.destination);
       masterGainRef.current = masterGain;
 

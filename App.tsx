@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -10,9 +11,9 @@ import type { SoundSources, SoundCorner } from './types';
 const InitialOverlay: React.FC<{ onStart: () => void }> = ({ onStart }) => (
     <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50">
         <div className="text-center p-8">
-            <h2 className="text-3xl font-bold text-white mb-4">Interactive Soundscape Creator</h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Footsteps XY</h2>
             <p className="text-gray-300 mb-8 max-w-lg">
-                Upload your own audio files, then click the XY Pad to play and blend them into a unique soundscape.
+                Upload your own audio files, then click the XY Pad to play and blend them into unique footstep sounds.
                 This experience requires audio. Click below to start.
             </p>
             <button
