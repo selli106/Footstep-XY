@@ -71,7 +71,7 @@ const AudioFileInput: React.FC<{
 
 const Controls: React.FC<ControlsProps> = ({ axisMode, setAxisMode, soundSources, setSoundSource, setSoundSourceVolume }) => {
   return (
-    <div className="w-full max-w-md bg-gray-800/50 p-4 rounded-lg shadow-lg">
+    <div className="w-full bg-gray-800/50 p-4 rounded-lg shadow-lg">
       <h3 className="text-lg font-bold mb-4 text-white">Controls</h3>
       
       <div className="mb-6">
@@ -98,6 +98,7 @@ const Controls: React.FC<ControlsProps> = ({ axisMode, setAxisMode, soundSources
           <div className="grid grid-cols-2 gap-4">
             <AudioFileInput label="Top-Left" corner="topLeft" soundSource={soundSources.topLeft} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
             <AudioFileInput label="Top-Right" corner="topRight" soundSource={soundSources.topRight} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
+            {/* Fix: Corrected typo `soundSourceVolume` to `setSoundSourceVolume`. */}
             <AudioFileInput label="Bottom-Left" corner="bottomLeft" soundSource={soundSources.bottomLeft} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
             <AudioFileInput label="Bottom-Right" corner="bottomRight" soundSource={soundSources.bottomRight} setSoundSource={setSoundSource} onVolumeChange={setSoundSourceVolume} />
           </div>

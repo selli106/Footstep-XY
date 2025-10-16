@@ -105,13 +105,13 @@ const XYPad: React.FC<XYPadProps> = ({ xy, setXY, axisMode, onPadInteractionStar
   const labels = getLabels();
 
   return (
-    <div className="flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md flex justify-between text-gray-400 font-semibold px-2">
+    <div className="flex flex-col items-center justify-center p-4 w-full">
+      <div className="w-full flex justify-between text-gray-400 font-semibold px-2">
         <span>{labels.left}</span>
         <span>{labels.right}</span>
       </div>
-      <div className="flex items-center w-full max-w-md">
-        <div className="flex flex-col justify-between h-72 md:h-96 text-gray-400 font-semibold py-2 -mr-2">
+      <div className="flex items-stretch w-full">
+        <div className="flex flex-col justify-between text-gray-400 font-semibold py-2 -mr-2">
           <span>{labels.top}</span>
           <span>{labels.bottom}</span>
         </div>
@@ -119,7 +119,7 @@ const XYPad: React.FC<XYPadProps> = ({ xy, setXY, axisMode, onPadInteractionStar
           ref={padRef}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
-          className="relative w-full h-72 md:h-96 bg-gray-800/50 rounded-lg shadow-inner cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          className="relative w-full aspect-square bg-gray-800/50 rounded-lg shadow-inner cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
           style={{ touchAction: 'none' }}
           tabIndex={0}
         >
