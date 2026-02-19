@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import XYPad from './components/XYPad';
 import Controls from './components/Controls';
