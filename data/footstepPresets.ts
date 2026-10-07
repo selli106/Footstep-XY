@@ -53,7 +53,13 @@ export const footstepPresets: FootstepPreset[] = surfaces.flatMap(surface => {
   const variations = presetsBySurface.get(surface)?.sort((a, b) => a.variation - b.variation) ?? [];
   if (variations.length === 0) return [];
 
-  const sounds = corners.map((_, index) => variations[index % variations.length]);
+  // Sounds 1 & 2 and sounds 3 & 4 must use different variations within each pair.
+  // The second pair is offset so it also differs from the first pair where possible.
+  const sounds = corners.map((_, index) => {
+    const pair = Math.floor(index / 2);
+    const slot = index % 2;
+    return variations[(pair + slot) % variations.length];
+  });
   const label = surface;
 
   return [{
