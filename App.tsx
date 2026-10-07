@@ -5,6 +5,7 @@ import Controls from './components/Controls';
 import Footer from './components/Footer';
 import { useAudioEngine } from './hooks/useAudioEngine';
 import type { SoundSources, AxisMode, SoundCorner, ReverbPreset } from './types';
+import type { FootstepPreset } from './data/footstepPresets';
 import { AxisMode as AxisModeEnum } from './types';
 
 const initialSoundSources: SoundSources = {
@@ -27,7 +28,16 @@ function App() {
   const handleSetSoundSource = useCallback((corner: SoundCorner, file: File) => {
     setSoundSources(prev => ({
       ...prev,
-      [corner]: { ...prev[corner], file, name: file.name }
+      [corner]: { ...prev[corner], url: null, file, name: file.name }
+    }));
+  }, []);
+
+  const handleApplyPreset = useCallback((preset: FootstepPreset) => {
+    setSoundSources(prev => ({
+      topLeft: { ...prev.topLeft, ...preset.corners.topLeft, file: null },
+      topRight: { ...prev.topRight, ...preset.corners.topRight, file: null },
+      bottomLeft: { ...prev.bottomLeft, ...preset.corners.bottomLeft, file: null },
+      bottomRight: { ...prev.bottomRight, ...preset.corners.bottomRight, file: null },
     }));
   }, []);
 
@@ -133,6 +143,7 @@ function App() {
               soundSources={soundSources}
               setSoundSource={handleSetSoundSource}
               setSoundSourceVolume={handleSetSoundSourceVolume}
+              onApplyPreset={handleApplyPreset}
               reverbPreset={reverbPreset}
               setReverbPreset={setReverbPreset}
               reverbWet={reverbWet}
