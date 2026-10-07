@@ -23,4 +23,4 @@ View your app in AI Studio: https://ai.studio/apps/drive/1wTEw-p4y1kl-jzjvH426cn
 Deployment is handled by `.github/workflows/deploy.yml` on every push to `main`.
 In the repo settings, set **Pages > Source** to **GitHub Actions**.
 The Vite `base` is `/Footstep-XY/`, so the site is served at https://selli106.github.io/Footstep-XY/.
-Reverb impulse responses are expected in `public/reverbs/*.wav`.
+Reverb presets use generated impulse responses and do not require external audio files.
