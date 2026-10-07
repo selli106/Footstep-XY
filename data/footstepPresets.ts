@@ -8,7 +8,7 @@ export interface FootstepPreset {
 }
 
 const audioFiles = import.meta.glob<string>(
-  '../Footstep Foley SFX Pack - wav (HD)/*.wav',
+  '../Footstep Foley SFX Pack - wav \\(HD\\)/*.wav',
   { eager: true, query: '?url', import: 'default' }
 );
 
