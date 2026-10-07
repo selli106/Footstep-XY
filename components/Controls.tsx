@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { AxisMode } from '../types';
 import type { SoundSources, SoundCorner, SoundSource, ReverbPreset } from '../types';
+import { footstepPresets } from '../data/footstepPresets';
+import type { FootstepPreset } from '../data/footstepPresets';
 
 interface ControlsProps {
   axisMode: AxisMode;
@@ -8,6 +10,7 @@ interface ControlsProps {
   soundSources: SoundSources;
   setSoundSource: (corner: SoundCorner, file: File) => void;
   setSoundSourceVolume: (corner: SoundCorner, volume: number) => void;
+  onApplyPreset: (preset: FootstepPreset) => void;
   reverbPreset: ReverbPreset;
   setReverbPreset: (preset: ReverbPreset) => void;
   reverbWet: number;
@@ -79,11 +82,15 @@ const Controls: React.FC<ControlsProps> = ({
   soundSources, 
   setSoundSource, 
   setSoundSourceVolume,
+  onApplyPreset,
   reverbPreset,
   setReverbPreset,
   reverbWet,
   setReverbWet,
 }) => {
+  const [selectedPresetId, setSelectedPresetId] = React.useState(footstepPresets[0]?.id ?? '');
+  const selectedPreset = footstepPresets.find(preset => preset.id === selectedPresetId);
+
   const reverbPresets: { id: ReverbPreset, name: string }[] = [
     { id: 'none', name: 'None' },
     { id: 'hall', name: 'Hall' },
@@ -114,6 +121,31 @@ const Controls: React.FC<ControlsProps> = ({
         </div>
       </div>
       
+      <div className="mb-6">
+        <label htmlFor="footstep-preset" className="block text-sm font-semibold text-gray-300 mb-2">Surface Preset</label>
+        <div className="flex space-x-2">
+          <select
+            id="footstep-preset"
+            value={selectedPresetId}
+            onChange={event => setSelectedPresetId(event.target.value)}
+            className="w-full min-w-0 bg-gray-700 text-white font-semibold py-2 px-3 rounded-md"
+          >
+            {footstepPresets.map(preset => (
+              <option key={preset.id} value={preset.id}>{preset.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => selectedPreset && onApplyPreset(selectedPreset)}
+            disabled={!selectedPreset}
+            className="shrink-0 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-semibold py-2 px-3 rounded-md transition-colors"
+          >
+            Apply
+          </button>
+        </div>
+        {selectedPreset && <p className="mt-2 text-xs text-gray-400">{selectedPreset.description}</p>}
+      </div>
+
       <div className="mb-6">
         <label className="block text-sm font-semibold text-gray-300 mb-2">Sound Sources</label>
         {axisMode === AxisMode.BLEND ? (

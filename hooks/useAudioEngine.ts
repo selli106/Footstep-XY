@@ -17,7 +17,7 @@ export const useAudioEngine = (
 ) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const audioBuffersRef = useRef<Partial<Record<SoundCorner, { buffer: AudioBuffer; file: File }>>>({});
+  const audioBuffersRef = useRef<Partial<Record<SoundCorner, { buffer: AudioBuffer; file: File | null; url: string | null }>>>({});
   
   const masterGainRef = useRef<GainNode | null>(null);
   const masterDryGainRef = useRef<GainNode | null>(null);
@@ -57,18 +57,27 @@ export const useAudioEngine = (
   useEffect(() => {
     const context = audioContextRef.current;
     if (!context || !isInitialized) return;
+    let cancelled = false;
 
     Object.entries(soundSources).forEach(async ([key, source]) => {
       const corner = key as SoundCorner;
-      
-      if (source.file) {
-        if (audioBuffersRef.current[corner]?.file !== source.file) {
+
+      if (source.file || source.url) {
+        const cachedBuffer = audioBuffersRef.current[corner];
+        if (cachedBuffer?.file !== source.file || cachedBuffer?.url !== source.url) {
           try {
-            const arrayBuffer = await source.file.arrayBuffer();
+            const arrayBuffer = source.file
+              ? await source.file.arrayBuffer()
+              : await fetch(source.url!).then(response => {
+                if (!response.ok) throw new Error(`Failed to fetch audio: ${response.status}`);
+                return response.arrayBuffer();
+              });
             const audioBuffer = await context.decodeAudioData(arrayBuffer);
-            audioBuffersRef.current[corner] = { buffer: audioBuffer, file: source.file };
+            if (cancelled) return;
+            audioBuffersRef.current[corner] = { buffer: audioBuffer, file: source.file, url: source.url };
             console.log(`Loaded audio for ${corner}`);
           } catch (error) {
+            if (cancelled) return;
             console.error(`Error decoding audio file for ${corner}:`, error);
             delete audioBuffersRef.current[corner];
           }
@@ -79,6 +88,10 @@ export const useAudioEngine = (
         }
       }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [soundSources, isInitialized]);
 
   // Effect to load reverb impulse response
