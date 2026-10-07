@@ -2,12 +2,32 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AxisMode, SoundSources, ReverbPreset, SoundCorner } from '../types';
 
-const REVERB_FILES: Record<ReverbPreset, string | null> = {
-  none: null,
-  hall: `${import.meta.env.BASE_URL}reverbs/large-hall.wav`,
-  bathroom: `${import.meta.env.BASE_URL}reverbs/bathroom.wav`,
-  tunnel: `${import.meta.env.BASE_URL}reverbs/tunnel.wav`,
-  hallway: `${import.meta.env.BASE_URL}reverbs/hallway.wav`,
+const REVERB_PROFILES: Record<Exclude<ReverbPreset, 'none'>, { duration: number; decayTime: number; damping: number }> = {
+  hall: { duration: 3.2, decayTime: 2.4, damping: 0.16 },
+  bathroom: { duration: 1.2, decayTime: 0.65, damping: 0.42 },
+  tunnel: { duration: 4.5, decayTime: 3.5, damping: 0.1 },
+  hallway: { duration: 1.8, decayTime: 1.1, damping: 0.3 },
+};
+
+const createReverbImpulse = (context: AudioContext, preset: Exclude<ReverbPreset, 'none'>) => {
+  const profile = REVERB_PROFILES[preset];
+  const length = Math.ceil(context.sampleRate * profile.duration);
+  const impulse = context.createBuffer(2, length, context.sampleRate);
+
+  for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+    const samples = impulse.getChannelData(channel);
+    let filteredNoise = 0;
+
+    for (let i = 0; i < length; i++) {
+      const time = i / context.sampleRate;
+      const envelope = Math.exp((-6.91 * time) / profile.decayTime);
+      const noise = Math.random() * 2 - 1;
+      filteredNoise += profile.damping * (noise - filteredNoise);
+      samples[i] = filteredNoise * envelope;
+    }
+  }
+
+  return impulse;
 };
 
 export const useAudioEngine = (
@@ -100,19 +120,9 @@ export const useAudioEngine = (
     const convolver = convolverRef.current;
     if (!context || !isInitialized || !convolver) return;
 
-    const reverbUrl = REVERB_FILES[reverbPreset];
-    if (reverbUrl) {
-      fetch(reverbUrl)
-        .then(response => response.arrayBuffer())
-        .then(arrayBuffer => context.decodeAudioData(arrayBuffer))
-        .then(audioBuffer => {
-          convolver.buffer = audioBuffer;
-          console.log(`Loaded reverb: ${reverbPreset}`);
-        })
-        .catch(error => console.error(`Failed to load reverb impulse for ${reverbPreset}`, error));
-    } else {
-      convolver.buffer = null; // No reverb
-    }
+    convolver.buffer = reverbPreset === 'none'
+      ? null
+      : createReverbImpulse(context, reverbPreset);
   }, [reverbPreset, isInitialized]);
 
   // Effect to update reverb wet/dry mix
