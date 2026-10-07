@@ -4,10 +4,10 @@ import { AxisMode, SoundSources, ReverbPreset, SoundCorner } from '../types';
 
 const REVERB_FILES: Record<ReverbPreset, string | null> = {
   none: null,
-  hall: '/reverbs/large-hall.wav',
-  bathroom: '/reverbs/bathroom.wav',
-  tunnel: '/reverbs/tunnel.wav',
-  hallway: '/reverbs/hallway.wav',
+  hall: `${import.meta.env.BASE_URL}reverbs/large-hall.wav`,
+  bathroom: `${import.meta.env.BASE_URL}reverbs/bathroom.wav`,
+  tunnel: `${import.meta.env.BASE_URL}reverbs/tunnel.wav`,
+  hallway: `${import.meta.env.BASE_URL}reverbs/hallway.wav`,
 };
 
 export const useAudioEngine = (

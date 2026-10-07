@@ -15,6 +15,12 @@ View your app in AI Studio: https://ai.studio/apps/drive/1wTEw-p4y1kl-jzjvH426cn
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the app:
    `npm run dev`
+
+## Deploy to GitHub Pages
+
+Deployment is handled by `.github/workflows/deploy.yml` on every push to `main`.
+In the repo settings, set **Pages > Source** to **GitHub Actions**.
+The Vite `base` is `/Footstep-XY/`, so the site is served at https://selli106.github.io/Footstep-XY/.
+Reverb impulse responses are expected in `public/reverbs/*.wav`.
